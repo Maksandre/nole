@@ -5,6 +5,10 @@
   "repository": "https://github.com/Maksandre/nole.git",
   "author": "Maksandre <maksandre@yandex.ru>",
   "license": "MIT",
+  "scripts": {
+    "test:hh": "npx hardhat test --no-compile",
+    "run:hh": "npx hardhat run --no-compile"
+  },
   "dependencies": {
     "@nilfoundation/hardhat-plugin": "^0.12.2",
     "@nilfoundation/niljs": "^0.12.0",

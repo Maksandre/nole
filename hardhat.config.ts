@@ -1,10 +1,8 @@
 import type { NilHardhatUserConfig } from "@nilfoundation/hardhat-plugin";
 import "@nomicfoundation/hardhat-toolbox-viem";
 import "@nilfoundation/hardhat-plugin";
-import * as dotenv from "dotenv";
 
-dotenv.config();
-
+import appConfig from "./src/config";
 
 const config: NilHardhatUserConfig = {
   solidity: "0.8.24",
@@ -13,11 +11,11 @@ const config: NilHardhatUserConfig = {
   },
   networks: {
     nil: {
-      url: process.env.NIL_RPC_ENDPOINT,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      url: appConfig.rpc,
+      accounts: [appConfig.privateKey],
     },
   },
-  walletAddress: process.env.WALLET_ADDR?.toLowerCase(),
+  walletAddress: appConfig.wallet,
   debug: true,
 };
 
