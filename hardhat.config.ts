@@ -2,20 +2,20 @@ import type { NilHardhatUserConfig } from "@nilfoundation/hardhat-plugin";
 import "@nomicfoundation/hardhat-toolbox-viem";
 import "@nilfoundation/hardhat-plugin";
 
-import appConfig from "./src/config";
+import appConfig from "./src/utils/config";
 
 const config: NilHardhatUserConfig = {
-  solidity: "0.8.24",
+  solidity: "0.8.23",
   ignition: {
     requiredConfirmations: 1,
   },
   networks: {
     nil: {
       url: appConfig.rpc,
-      accounts: [appConfig.privateKey],
+      accounts: [appConfig.signerPrivateKey],
     },
   },
-  walletAddress: appConfig.wallet,
+  walletAddress: appConfig.walletAddress,
   debug: true,
 };
 

@@ -15,5 +15,8 @@
   ],
   "eslint.workingDirectories": [
     { "mode": "auto" }
+  ],
+  "cSpell.words": [
+    "Nole"
   ]
 }
