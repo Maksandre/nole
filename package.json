@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "repository": "https://github.com/Maksandre/nole.git",
-  "author": "Maksandre <maksandre@yandex.ru>",
+  "author": "Maksandre <maxick20@gmail.com>",
   "license": "MIT",
   "scripts": {
     "test:hh": "npx hardhat test --no-compile",
     "run:hh": "npx hardhat run --no-compile",
-    "compile": "npx hardhat compile"
+    "compile": "npx hardhat compile",
+    "codestyle": "prettier . --write"
   },
   "dependencies": {
     "@nilfoundation/hardhat-plugin": "^0.12.2",

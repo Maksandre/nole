@@ -5,8 +5,7 @@ import "./nilcore/NilCurrencyBase.sol";
 
 contract NoleWallet is NilCurrencyBase {
     bytes private s_pubkey;
-    mapping(address spender => mapping(uint256 tokenId => uint256 amount))
-        private s_allowances;
+    mapping(address spender => mapping(uint256 tokenId => uint256 amount)) private s_allowances;
 
     constructor(bytes memory _pubkey) payable {
         s_pubkey = _pubkey;
@@ -16,17 +15,11 @@ contract NoleWallet is NilCurrencyBase {
 
     function bounce(string calldata err) external payable {}
 
-    function allowance(
-        address _spender,
-        uint256 _token
-    ) public view returns (uint256) {
+    function allowance(address _spender, uint256 _token) public view returns (uint256) {
         return s_allowances[_spender][_token];
     }
 
-    function approve(
-        address _spender,
-        Nil.Token[] memory _tokens
-    ) public onlyExternal {
+    function approve(address _spender, Nil.Token[] memory _tokens) public onlyExternal {
         uint256 length = _tokens.length;
         for (uint256 i = 0; i < length; i++) {
             Nil.Token memory tkn = _tokens[i];
@@ -34,31 +27,15 @@ contract NoleWallet is NilCurrencyBase {
         }
     }
 
-    function transfer(
-        Nil.Token[] memory _tokens,
-        address _recepient
-    ) public onlyInternal {
+    function transfer(Nil.Token[] memory _tokens, address _recepient) public onlyInternal {
         uint256 length = _tokens.length;
         for (uint i = 0; i < length; i++) {
             Nil.Token memory tkn = _tokens[i];
-            require(
-                s_allowances[msg.sender][tkn.id] >= tkn.amount,
-                "Transfer more than allowed"
-            );
+            require(s_allowances[msg.sender][tkn.id] >= tkn.amount, "Transfer more than allowed");
             s_allowances[msg.sender][tkn.id] -= tkn.amount;
         }
 
-        Nil.asyncCall(
-            _recepient,
-            address(this),
-            address(this),
-            gasleft(),
-            Nil.FORWARD_NONE,
-            false,
-            0,
-            _tokens,
-            ""
-        );
+        Nil.asyncCall(_recepient, address(this), address(this), gasleft(), Nil.FORWARD_NONE, false, 0, _tokens, "");
     }
 
     function send(bytes calldata _message) public onlyExternal {
@@ -89,20 +66,12 @@ contract NoleWallet is NilCurrencyBase {
         require(success, "asyncCall failed");
     }
 
-    function syncCall(
-        address _dst,
-        uint256 _gas,
-        uint256 _value,
-        bytes memory _call_data
-    ) public onlyExternal {
+    function syncCall(address _dst, uint256 _gas, uint256 _value, bytes memory _call_data) public onlyExternal {
         (bool success, ) = _dst.call{value: _value, gas: _gas}(_call_data);
         require(success, "Call failed");
     }
 
-    function verifyExternal(
-        uint256 _hash,
-        bytes calldata _signature
-    ) external view returns (bool) {
+    function verifyExternal(uint256 _hash, bytes calldata _signature) external view returns (bool) {
         return Nil.validateSignature(s_pubkey, _hash, _signature);
     }
 }
