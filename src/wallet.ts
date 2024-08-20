@@ -1,68 +1,163 @@
 import config from "./utils/config";
 import NoleClient from "./nole-client/NoleClient";
+import { encodeFunctionData, hexToBigInt, hexToBytes } from "viem";
 import {
+  bytesToHex,
+  externalMessageEncode,
+  Faucet,
   Hex,
-  LocalECDSAKeySigner,
-  refineAddress,
   waitTillCompleted,
 } from "@nilfoundation/niljs";
 import { artifacts } from "hardhat";
-import { bytesToHex, encodeFunctionData } from "viem";
 
 const main = async () => {
-  const walletArtifact = await artifacts.readArtifact(
-    "contracts/nilcore/Wallet.sol:Wallet",
-  );
-
   const nil = await NoleClient.init(config);
-
-  const someRandomSigner = new LocalECDSAKeySigner({
-    privateKey:
-      "0x1c21c5387b62c6da4fecd929cb7b0a675b9f72a1bd739006c716bb7741d1957e",
+  const nil2 = await NoleClient.init({
+    rpc: config.rpc,
+    shardId: config.shardId,
+    signerPrivateKey:
+      "0x1782b8c2942b66466dcc570689d43761e57bc1572bd2f5f6fe0adeb500862690",
+    walletAddress: "0x000191Ce33a93aAD9E9baf4B4D6f050a409055bF",
   });
 
-  const SOME_RANDOM_WALLET =
-    "0x000150E85243a3AE693620BB5ff5C5c40f4C5507".toLowerCase() as Hex;
-  const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+  const signerPublicKey = bytesToHex(await nil.signer.getPublicKey());
 
-  nil.wallet.signer = someRandomSigner;
+  ///////// 1. Deploy wallet /////////
+  const noleWalletArtifacts = await artifacts.readArtifact("NoleWallet");
 
-  // const from = toHex(await someRandomSigner.getAddress(config.shardId));
-  const from = bytesToHex(nil.wallet.address);
-  const to = bytesToHex(refineAddress(nil.wallet.address));
-  const refundAndBounce = to;
-  const data = encodeFunctionData({
-    abi: walletArtifact.abi,
-    functionName: "asyncCall",
+  const deploymentTx = await nil.wallet.deployContract({
+    shardId: config.shardId,
+    bytecode: noleWalletArtifacts.bytecode,
+    salt: 2n,
+    feeCredit: 5_000_000n,
+    value: 0n,
+    abi: noleWalletArtifacts.abi,
+    args: [signerPublicKey],
+  });
+
+  const deploymentTxReceipts = await waitTillCompleted(
+    nil.wallet.client,
+    config.shardId,
+    deploymentTx.hash,
+  );
+
+  const walletAddress = deploymentTx.address;
+  // for (const receipt of deploymentTxReceipts) {
+  //   if (!receipt.success) {
+  //     throw Error("Deployment transaction failed");
+  //   }
+  // }
+  console.log(walletAddress);
+
+  let [seqno, chainId] = await Promise.all([
+    nil.wallet.client.getMessageCount(walletAddress, "latest"),
+    nil.wallet.client.chainId(),
+  ]);
+
+  ///////// 2. Top Up wallet /////////
+  const faucet = new Faucet(nil.wallet.client);
+  await faucet.withdrawToWithRetry(walletAddress, 10n ** 18n);
+
+  ///////// 3. Mint currency /////////
+  const createCurrencyCalldata = encodeFunctionData({
+    abi: noleWalletArtifacts.abi,
+    functionName: "createToken",
+    args: [1_000_000n, "My Currency", true],
+  });
+
+  const createCurrencyRaw = await externalMessageEncode(
+    {
+      isDeploy: false,
+      chainId,
+      seqno,
+      to: hexToBytes(walletAddress),
+      data: hexToBytes(createCurrencyCalldata),
+    },
+    nil.wallet.signer,
+  );
+
+  const createCurrencyCall = await nil.wallet.client.sendRawMessage(
+    createCurrencyRaw.raw,
+  );
+
+  const createCurrencyReceipts = await waitTillCompleted(
+    nil.wallet.client,
+    nil.wallet.shardId,
+    createCurrencyCall,
+  );
+
+  ///////// 4. query currencies /////////
+  const currencies = await nil.wallet.client.getCurrencies(
+    walletAddress,
+    "latest",
+  );
+  console.log(currencies);
+
+  ///////// 5. approve /////////
+  const APPROVE_VALUE = 500n;
+
+  const approveCalldata = encodeFunctionData({
+    abi: noleWalletArtifacts.abi,
+    functionName: "approve",
     args: [
-      SOME_RANDOM_WALLET,
-      refundAndBounce,
-      refundAndBounce,
-      5_000_000n,
-      false,
-      [],
-      1000n,
-      "0x",
+      nil2.wallet.getAddressHex(),
+      hexToBigInt(walletAddress),
+      APPROVE_VALUE,
     ],
   });
 
-  const illegalCall = await nil.wallet.client.call(
+  [seqno, chainId] = await Promise.all([
+    nil.wallet.client.getMessageCount(walletAddress, "latest"),
+    nil.wallet.client.chainId(),
+  ]);
+
+  const approveRaw = await externalMessageEncode(
     {
-      from,
-      to,
-      data,
-      gasLimit: 6_000_000n,
+      chainId,
+      seqno,
+      isDeploy: false,
+      to: hexToBytes(walletAddress),
+      data: hexToBytes(approveCalldata),
     },
+    nil.signer,
+  );
+
+  const approveCall = await nil.wallet.client.sendRawMessage(approveRaw.raw);
+
+  const approveReceipts = await waitTillCompleted(
+    nil.wallet.client,
+    nil.wallet.shardId,
+    approveCall,
+  );
+
+  ///////// 5. transfer /////////
+  const transferCall = await nil2.wallet.sendMessage({
+    to: walletAddress,
+    feeCredit: 5_000_000n,
+    data: encodeFunctionData({
+      abi: noleWalletArtifacts.abi,
+      functionName: "transfer",
+      args: [
+        hexToBigInt(walletAddress),
+        nil2.wallet.getAddressHex(),
+        APPROVE_VALUE,
+      ],
+    }),
+  });
+
+  const transferReceipts = await waitTillCompleted(
+    nil2.wallet.client,
+    nil2.wallet.shardId,
+    transferCall,
+  );
+
+  ///////// 6. query currencies /////////
+  const currenciesRecipient = await nil.wallet.client.getCurrencies(
+    nil2.wallet.getAddressHex(),
     "latest",
   );
 
-  const receipts = await waitTillCompleted(
-    nil.wallet.client,
-    nil.wallet.shardId,
-    illegalCall,
-  );
-
-  console.log("Finish");
+  console.log(currenciesRecipient);
 };
 
 main().catch(console.log);

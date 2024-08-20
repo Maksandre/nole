@@ -19,3 +19,6 @@ ignition/deployments/chain-31337
 
 # solc
 solc-artifacts
+
+# configuration files for nil cli
+*.ini

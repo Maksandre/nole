@@ -14,7 +14,13 @@ export type NoleConfig = {
 };
 
 export default class NoleClient {
-  private constructor(readonly wallet: WalletV1) {}
+  readonly wallet: WalletV1;
+  readonly signer: LocalECDSAKeySigner;
+
+  private constructor(wallet: WalletV1, signer: LocalECDSAKeySigner) {
+    this.wallet = wallet;
+    this.signer = signer;
+  }
 
   static async init(config: NoleConfig): Promise<NoleClient> {
     const client = new PublicClient({
@@ -35,13 +41,11 @@ export default class NoleClient {
       address: config.walletAddress,
     });
 
-    return new NoleClient(wallet);
+    return new NoleClient(wallet, signer);
   }
 
-  // connect(signer: LocalECDSAKeySigner): NoleClient;
-  connect(wallet: WalletV1): NoleClient;
-  connect(walletOrSigner: WalletV1): NoleClient {
-    return new NoleClient(walletOrSigner);
+  connect(wallet: WalletV1, signer: LocalECDSAKeySigner): NoleClient {
+    return new NoleClient(wallet, signer);
   }
 
   sendMessage() {

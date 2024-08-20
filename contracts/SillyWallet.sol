@@ -1,12 +1,12 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
+
 pragma solidity 0.8.23;
 
 import "./nilcore/NilCurrencyBase.sol";
 
-contract NoleWallet is NilCurrencyBase {
-    bytes private s_pubkey;
-    mapping(address spender => mapping(uint256 tokenId => uint256 amount))
-        private s_allowances;
+contract SillyWallet is NilCurrencyBase {
+    bytes s_pubkey;
+    mapping(address spender => mapping(uint256 tokenId => uint256 amount)) s_allowances;
 
     receive() external payable {}
 
@@ -37,15 +37,14 @@ contract NoleWallet is NilCurrencyBase {
         Nil.Token[] memory token = new Nil.Token[](1);
         token[0] = Nil.Token({id: _token, amount: _amount});
 
-        Nil.asyncCall(
+        this.asyncCall(
             _recepient,
             address(this),
             address(this),
             gasleft(),
-            Nil.FORWARD_NONE,
             false,
-            0,
             token,
+            0,
             ""
         );
     }
