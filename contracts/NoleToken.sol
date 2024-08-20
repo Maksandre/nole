@@ -2,17 +2,7 @@
 pragma solidity 0.8.23;
 
 import "./nilcore/Nil.sol";
-
-interface IMinter {
-    function create(
-        uint256 amount,
-        address owner,
-        string memory name,
-        address sendTo
-    ) external payable returns (bool);
-
-    function getIdByName(string memory name) external view returns (uint256);
-}
+import "./interfaces/IMinter.sol";
 
 contract NoleToken is NilBase {
     IMinter MINTER = IMinter(Nil.MINTER_ADDRESS);

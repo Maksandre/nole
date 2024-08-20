@@ -5,7 +5,6 @@ import {
   bytesToHex,
   externalMessageEncode,
   Faucet,
-  Hex,
   waitTillCompleted,
 } from "@nilfoundation/niljs";
 import { artifacts } from "hardhat";
@@ -101,8 +100,7 @@ const main = async () => {
     functionName: "approve",
     args: [
       nil2.wallet.getAddressHex(),
-      hexToBigInt(walletAddress),
-      APPROVE_VALUE,
+      [{ id: hexToBigInt(walletAddress), amount: APPROVE_VALUE }],
     ],
   });
 
@@ -130,7 +128,7 @@ const main = async () => {
     approveCall,
   );
 
-  ///////// 5. transfer /////////
+  ///////// 6. transfer /////////
   const transferCall = await nil2.wallet.sendMessage({
     to: walletAddress,
     feeCredit: 5_000_000n,
@@ -138,9 +136,8 @@ const main = async () => {
       abi: noleWalletArtifacts.abi,
       functionName: "transfer",
       args: [
-        hexToBigInt(walletAddress),
+        [{ id: hexToBigInt(walletAddress), amount: APPROVE_VALUE }],
         nil2.wallet.getAddressHex(),
-        APPROVE_VALUE,
       ],
     }),
   });
@@ -151,7 +148,7 @@ const main = async () => {
     transferCall,
   );
 
-  ///////// 6. query currencies /////////
+  ///////// 7. query currencies /////////
   const currenciesRecipient = await nil.wallet.client.getCurrencies(
     nil2.wallet.getAddressHex(),
     "latest",

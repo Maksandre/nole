@@ -8,34 +8,45 @@ contract NoleWallet is NilCurrencyBase {
     mapping(address spender => mapping(uint256 tokenId => uint256 amount))
         private s_allowances;
 
-    receive() external payable {}
-
-    function bounce(string calldata err) external payable {}
-
     constructor(bytes memory _pubkey) payable {
         s_pubkey = _pubkey;
     }
 
+    receive() external payable {}
+
+    function bounce(string calldata err) external payable {}
+
+    function allowance(
+        address _spender,
+        uint256 _token
+    ) public view returns (uint256) {
+        return s_allowances[_spender][_token];
+    }
+
     function approve(
         address _spender,
-        uint256 _token,
-        uint256 _amount
+        Nil.Token[] memory _tokens
     ) public onlyExternal {
-        s_allowances[_spender][_token] = _amount;
+        uint256 length = _tokens.length;
+        for (uint256 i = 0; i < length; i++) {
+            Nil.Token memory tkn = _tokens[i];
+            s_allowances[_spender][tkn.id] = tkn.amount;
+        }
     }
 
     function transfer(
-        uint256 _token,
-        address _recepient,
-        uint256 _amount
+        Nil.Token[] memory _tokens,
+        address _recepient
     ) public onlyInternal {
-        require(
-            s_allowances[msg.sender][_token] >= _amount,
-            "Transfer more than allowed"
-        );
-        s_allowances[msg.sender][_token] -= _amount;
-        Nil.Token[] memory token = new Nil.Token[](1);
-        token[0] = Nil.Token({id: _token, amount: _amount});
+        uint256 length = _tokens.length;
+        for (uint i = 0; i < length; i++) {
+            Nil.Token memory tkn = _tokens[i];
+            require(
+                s_allowances[msg.sender][tkn.id] >= tkn.amount,
+                "Transfer more than allowed"
+            );
+            s_allowances[msg.sender][tkn.id] -= tkn.amount;
+        }
 
         Nil.asyncCall(
             _recepient,
@@ -45,60 +56,53 @@ contract NoleWallet is NilCurrencyBase {
             Nil.FORWARD_NONE,
             false,
             0,
-            token,
+            _tokens,
             ""
         );
     }
 
-    function allowance(
-        address _spender,
-        uint256 _token
-    ) public view returns (uint256) {
-        return s_allowances[_spender][_token];
-    }
-
-    function send(bytes calldata message) public onlyExternal {
-        Nil.sendMessage(gasleft(), message);
+    function send(bytes calldata _message) public onlyExternal {
+        Nil.sendMessage(gasleft(), _message);
     }
 
     function asyncCall(
-        address dst,
-        address refundTo,
-        address bounceTo,
-        uint gas,
-        bool deploy,
-        Nil.Token[] memory tokens,
-        uint value,
-        bytes calldata callData
+        address _dst,
+        address _refundTo,
+        address _bounceTo,
+        uint256 _gas,
+        bool _deploy,
+        Nil.Token[] memory _tokens,
+        uint256 _value,
+        bytes calldata _callData
     ) public onlyExternal {
         bool success = Nil.asyncCall(
-            dst,
-            refundTo,
-            bounceTo,
-            gas,
+            _dst,
+            _refundTo,
+            _bounceTo,
+            _gas,
             Nil.FORWARD_NONE,
-            deploy,
-            value,
-            tokens,
-            callData
+            _deploy,
+            _value,
+            _tokens,
+            _callData
         );
         require(success, "asyncCall failed");
     }
 
     function syncCall(
-        address dst,
-        uint gas,
-        uint value,
-        bytes memory call_data
+        address _dst,
+        uint256 _gas,
+        uint256 _value,
+        bytes memory _call_data
     ) public onlyExternal {
-        (bool success, ) = dst.call{value: value, gas: gas}(call_data);
+        (bool success, ) = _dst.call{value: _value, gas: _gas}(_call_data);
         require(success, "Call failed");
     }
 
     function verifyExternal(
-        uint256 hash,
-        bytes calldata signature
+        uint256 _hash,
+        bytes calldata _signature
     ) external view returns (bool) {
-        return Nil.validateSignature(s_pubkey, hash, signature);
+        return Nil.validateSignature(s_pubkey, _hash, _signature);
     }
 }
