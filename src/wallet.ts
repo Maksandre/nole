@@ -1,17 +1,17 @@
 import config from "./utils/config";
 import NoleClient from "./nole-client/NoleClient";
 import { encodeFunctionData, hexToBigInt, hexToBytes } from "viem";
-import {
-  bytesToHex,
-  externalMessageEncode,
-  Faucet,
-  waitTillCompleted,
-} from "@nilfoundation/niljs";
+import { bytesToHex, Faucet, waitTillCompleted } from "@nilfoundation/niljs";
 import { artifacts } from "hardhat";
+import NoleWallet from "./nole-client/NoleWallet";
 
 const main = async () => {
-  const nil = await NoleClient.init(config);
-  const nil2 = await NoleClient.init({
+  const nil = await NoleWallet.init({
+    address: config.noleWalletAddress,
+    ...config,
+  });
+
+  const someWallet = await NoleClient.init({
     rpc: config.rpc,
     shardId: config.shardId,
     signerPrivateKey:
@@ -24,7 +24,7 @@ const main = async () => {
   ///////// 1. Deploy wallet /////////
   const noleWalletArtifacts = await artifacts.readArtifact("NoleWallet");
 
-  const deploymentTx = await nil.wallet.deployContract({
+  const deploymentCall = await nil.deployContract({
     shardId: config.shardId,
     bytecode: noleWalletArtifacts.bytecode,
     salt: 2n,
@@ -34,102 +34,32 @@ const main = async () => {
     args: [signerPublicKey],
   });
 
-  const deploymentTxReceipts = await waitTillCompleted(
-    nil.wallet.client,
-    config.shardId,
-    deploymentTx.hash,
-  );
-
-  const walletAddress = deploymentTx.address;
-  // for (const receipt of deploymentTxReceipts) {
-  //   if (!receipt.success) {
-  //     throw Error("Deployment transaction failed");
-  //   }
-  // }
-  console.log(walletAddress);
-
-  let [seqno, chainId] = await Promise.all([
-    nil.wallet.client.getMessageCount(walletAddress, "latest"),
-    nil.wallet.client.chainId(),
-  ]);
+  const walletAddress = deploymentCall.address;
+  console.log("Wallet Address:", walletAddress);
 
   ///////// 2. Top Up wallet /////////
-  const faucet = new Faucet(nil.wallet.client);
+  const faucet = new Faucet(nil.client);
   await faucet.withdrawToWithRetry(walletAddress, 10n ** 18n);
 
   ///////// 3. Mint currency /////////
-  const createCurrencyCalldata = encodeFunctionData({
-    abi: noleWalletArtifacts.abi,
-    functionName: "createToken",
-    args: [1_000_000n, "My Currency", true],
-  });
-
-  const createCurrencyRaw = await externalMessageEncode(
-    {
-      isDeploy: false,
-      chainId,
-      seqno,
-      to: hexToBytes(walletAddress),
-      data: hexToBytes(createCurrencyCalldata),
-    },
-    nil.wallet.signer,
-  );
-
-  const createCurrencyCall = await nil.wallet.client.sendRawMessage(
-    createCurrencyRaw.raw,
-  );
-
-  const createCurrencyReceipts = await waitTillCompleted(
-    nil.wallet.client,
-    nil.wallet.shardId,
-    createCurrencyCall,
+  const createCurrencyReceipts = await nil.createCurrency(
+    "My Currency",
+    1_000_000n,
+    true,
   );
 
   ///////// 4. query currencies /////////
-  const currencies = await nil.wallet.client.getCurrencies(
-    walletAddress,
-    "latest",
-  );
+  const currencies = await nil.getCurrencies(walletAddress);
   console.log(currencies);
 
   ///////// 5. approve /////////
   const APPROVE_VALUE = 500n;
-
-  const approveCalldata = encodeFunctionData({
-    abi: noleWalletArtifacts.abi,
-    functionName: "approve",
-    args: [
-      nil2.wallet.getAddressHex(),
-      [{ id: hexToBigInt(walletAddress), amount: APPROVE_VALUE }],
-    ],
-  });
-
-  [seqno, chainId] = await Promise.all([
-    nil.wallet.client.getMessageCount(walletAddress, "latest"),
-    nil.wallet.client.chainId(),
+  const approveCall = await nil.approve(someWallet.wallet.getAddressHex(), [
+    { id: hexToBigInt(walletAddress), amount: APPROVE_VALUE },
   ]);
 
-  const approveRaw = await externalMessageEncode(
-    {
-      chainId,
-      seqno,
-      isDeploy: false,
-      to: hexToBytes(walletAddress),
-      data: hexToBytes(approveCalldata),
-    },
-    nil.signer,
-  );
-
-  const approveCall = await nil.wallet.client.sendRawMessage(approveRaw.raw);
-
-  const approveReceipts = await waitTillCompleted(
-    nil.wallet.client,
-    nil.wallet.shardId,
-    approveCall,
-  );
-
   ///////// 6. transfer /////////
-  const transferCall = await nil2.wallet.sendMessage({
+  const transferCall = await someWallet.wallet.sendMessage({
     to: walletAddress,
     feeCredit: 5_000_000n,
     data: encodeFunctionData({
@@ -137,21 +67,20 @@ const main = async () => {
       functionName: "transfer",
       args: [
         [{ id: hexToBigInt(walletAddress), amount: APPROVE_VALUE }],
-        nil2.wallet.getAddressHex(),
+        someWallet.wallet.getAddressHex(),
       ],
     }),
   });
 
   const transferReceipts = await waitTillCompleted(
-    nil2.wallet.client,
-    nil2.wallet.shardId,
+    someWallet.wallet.client,
+    someWallet.wallet.shardId,
     transferCall,
   );
 
   ///////// 7. query currencies /////////
-  const currenciesRecipient = await nil.wallet.client.getCurrencies(
-    nil2.wallet.getAddressHex(),
-    "latest",
+  const currenciesRecipient = await nil.getCurrencies(
+    someWallet.wallet.getAddressHex(),
   );
 
   console.log(currenciesRecipient);
