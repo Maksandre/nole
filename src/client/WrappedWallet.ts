@@ -13,10 +13,16 @@ export type NoleConfig = {
   walletAddress: Hex;
 };
 
-export default class NoleClient {
-  private constructor(readonly wallet: WalletV1) {}
+export default class WrappedWallet {
+  readonly wallet: WalletV1;
+  readonly signer: LocalECDSAKeySigner;
 
-  static async init(config: NoleConfig): Promise<NoleClient> {
+  private constructor(wallet: WalletV1, signer: LocalECDSAKeySigner) {
+    this.wallet = wallet;
+    this.signer = signer;
+  }
+
+  static async init(config: NoleConfig): Promise<WrappedWallet> {
     const client = new PublicClient({
       transport: new HttpTransport({
         endpoint: config.rpc,
@@ -35,13 +41,11 @@ export default class NoleClient {
       address: config.walletAddress,
     });
 
-    return new NoleClient(wallet);
+    return new WrappedWallet(wallet, signer);
   }
 
-  // connect(signer: LocalECDSAKeySigner): NoleClient;
-  connect(wallet: WalletV1): NoleClient;
-  connect(walletOrSigner: WalletV1): NoleClient {
-    return new NoleClient(walletOrSigner);
+  connect(wallet: WalletV1, signer: LocalECDSAKeySigner): WrappedWallet {
+    return new WrappedWallet(wallet, signer);
   }
 
   sendMessage() {
