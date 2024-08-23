@@ -1,4 +1,4 @@
-import { LocalECDSAKeySigner, Hex } from "@nilfoundation/niljs";
+import { Hex } from "@nilfoundation/niljs";
 import { Abi } from "abitype";
 
 export type NoleWalletOptions = {

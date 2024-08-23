@@ -1,5 +1,5 @@
 import { artifacts } from "hardhat";
-import { NoleWallet$Type } from "../../artifacts/contracts/NoleWallet.sol/NoleWallet";
+import { XWallet$Type } from "../../artifacts/contracts/XWallet.sol/XWallet";
 import {
   BlockTag,
   bytesToHex,
@@ -16,19 +16,19 @@ import {
 } from "@nilfoundation/niljs";
 import { encodeFunctionData } from "viem";
 import { NoleWalletOptions, Currency, DeployParams } from "./types";
-import { prepareDeployPart } from "../utils/deployPart";
+import { prepareDeployPart } from "./utils/deployPart";
 
-export default class NoleWallet {
+export default class XWallet {
   private constructor(
     readonly address: Hex,
     readonly client: PublicClient,
     readonly signer: LocalECDSAKeySigner,
     readonly shardId: number,
-    private artifacts: NoleWallet$Type,
+    private artifacts: XWallet$Type,
   ) {}
 
   static async init(options: NoleWalletOptions) {
-    const artifact = await artifacts.readArtifact("NoleWallet");
+    const artifact = await artifacts.readArtifact("XWallet");
     const client = new PublicClient({
       shardId: options.shardId,
       transport: new HttpTransport({ endpoint: options.rpc }),
@@ -38,7 +38,7 @@ export default class NoleWallet {
       privateKey: options.signerPrivateKey,
     });
 
-    return new NoleWallet(
+    return new XWallet(
       options.address,
       client,
       signer,

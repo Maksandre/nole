@@ -1,17 +1,17 @@
-import config from "./utils/config";
-import NoleClient from "./nole-client/NoleClient";
-import { encodeFunctionData, hexToBigInt, hexToBytes } from "viem";
+import config from "./client/utils/config";
+import WrappedWallet from "./client/WrappedWallet";
+import { encodeFunctionData, hexToBigInt } from "viem";
 import { bytesToHex, Faucet, waitTillCompleted } from "@nilfoundation/niljs";
 import { artifacts } from "hardhat";
-import NoleWallet from "./nole-client/NoleWallet";
+import XWallet from "./client/XWallet";
 
 const main = async () => {
-  const nil = await NoleWallet.init({
-    address: config.noleWalletAddress,
+  const nil = await XWallet.init({
+    address: config.xWalletAddress,
     ...config,
   });
 
-  const someWallet = await NoleClient.init({
+  const someWallet = await WrappedWallet.init({
     rpc: config.rpc,
     shardId: config.shardId,
     signerPrivateKey:
@@ -22,15 +22,15 @@ const main = async () => {
   const signerPublicKey = bytesToHex(await nil.signer.getPublicKey());
 
   ///////// 1. Deploy wallet /////////
-  const noleWalletArtifacts = await artifacts.readArtifact("NoleWallet");
+  const xWalletArtifacts = await artifacts.readArtifact("XWallet");
 
   const deploymentCall = await nil.deployContract({
     shardId: config.shardId,
-    bytecode: noleWalletArtifacts.bytecode,
+    bytecode: xWalletArtifacts.bytecode,
     salt: 2n,
     feeCredit: 5_000_000n,
     value: 0n,
-    abi: noleWalletArtifacts.abi,
+    abi: xWalletArtifacts.abi,
     args: [signerPublicKey],
   });
 
@@ -63,7 +63,7 @@ const main = async () => {
     to: walletAddress,
     feeCredit: 5_000_000n,
     data: encodeFunctionData({
-      abi: noleWalletArtifacts.abi,
+      abi: xWalletArtifacts.abi,
       functionName: "transfer",
       args: [
         [{ id: hexToBigInt(walletAddress), amount: APPROVE_VALUE }],

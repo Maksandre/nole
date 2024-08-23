@@ -1,3 +1,5 @@
+// NOTE: this is copypaste from nil.js
+
 import { encodeDeployData } from "viem";
 
 import {

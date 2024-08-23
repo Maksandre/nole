@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import "./nilcore/NilCurrencyBase.sol";
 
-contract NoleWallet is NilCurrencyBase {
+contract XWallet is NilCurrencyBase {
     bytes private s_pubkey;
     mapping(address spender => mapping(uint256 tokenId => uint256 amount)) private s_allowances;
 
