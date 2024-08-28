@@ -2,8 +2,9 @@
 pragma solidity 0.8.23;
 
 import "./nilcore/NilCurrencyBase.sol";
+import "./interfaces/IXWallet.sol";
 
-contract XWallet is NilCurrencyBase {
+contract XWallet is IXWallet, NilCurrencyBase {
     bytes private s_pubkey;
     mapping(address spender => mapping(uint256 tokenId => uint256 amount)) private s_allowances;
 

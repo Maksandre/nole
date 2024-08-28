@@ -1,7 +1,7 @@
 import { Hex } from "@nilfoundation/niljs";
 import { Abi } from "abitype";
 
-export type NoleWalletOptions = {
+export type XWalletOptions = {
   address: Hex;
   rpc: string;
   signerPrivateKey: Hex;

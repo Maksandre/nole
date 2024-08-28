@@ -9,14 +9,14 @@ export const main = async () => {
     ...config,
   });
 
-  const collectionArtifacts = await artifacts.readArtifact("Collection");
+  const collectionArtifacts = await artifacts.readArtifact("XCollection");
 
   const deploymentTx = await nil.deployContract({
     bytecode: collectionArtifacts.bytecode,
     abi: collectionArtifacts.abi,
     args: ["Collection Name", "SMBL"],
     feeCredit: 3_000_000n,
-    salt: 2n,
+    salt: 3n,
     shardId: config.shardId,
   });
   const collectionAddress = deploymentTx.address;
@@ -25,7 +25,7 @@ export const main = async () => {
 
   const mintingResult = await nil.sendMessage({
     to: collectionAddress,
-    feeCredit: 3_000_000n,
+    feeCredit: 1_000_000n,
     data: encodeFunctionData({
       abi: collectionArtifacts.abi,
       functionName: "mint",

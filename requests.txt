@@ -1,0 +1,8 @@
+1. Approval from buyer to market
+nil contract call-readonly 0x0001ed75d54a246a9e0d6967f967ba3f2aabeb67 allowance 0x0001592fd1e47e8e0a737eae4e82f3289e64bdc2 42986453511819234961472296355415265217604455 --abi ./solc-artifacts/XWallet.abi
+
+2. Approval from seller to market
+nil contract call-readonly 0x00010d9f0d1f6250fb5f666fdcb7c6382fe5b553 allowance 0x0001592fd1e47e8e0a737eae4e82f3289e64bdc2 38960928007664262335236068603312746210865350 --abi ./solc-artifacts/XWallet.abi
+
+3. Get order
+nil contract call-readonly 0x0001592fd1e47e8e0a737eae4e82f3289e64bdc2 getOrder 38960928007664262335236068603312746210865350 --abi ./solc-artifacts/Market.abi

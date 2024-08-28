@@ -2,9 +2,9 @@
 pragma solidity 0.8.23;
 
 import "./interfaces/ICollection.sol";
-import "./Token.sol";
+import "./XToken.sol";
 
-contract Collection is ICollection {
+contract XCollection is ICollection {
     string private s_collectionName;
     string private s_collectionSymbol;
 
@@ -30,7 +30,7 @@ contract Collection is ICollection {
     function mint(address _to, uint256 _tokenId) public {
         if (s_tokens[_tokenId] != address(0)) revert Collection__TokenMinted();
         // TODO token name?
-        Token newToken = new Token(_to, s_collectionSymbol, _tokenId, address(this));
+        XToken newToken = new XToken(_to, s_collectionSymbol, _tokenId, address(this));
         s_tokens[_tokenId] = address(newToken);
     }
 }

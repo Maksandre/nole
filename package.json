@@ -8,7 +8,7 @@
   "scripts": {
     "test:hh": "npx hardhat test --no-compile",
     "run:hh": "npx hardhat run --no-compile",
-    "compile": "npx hardhat compile",
+    "compile": "npx hardhat compile --force",
     "codestyle": "prettier . --write"
   },
   "dependencies": {
