@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.23;
+pragma solidity ^0.8.20;
 
 import "./interfaces/IXWallet.sol";
 import "./XToken.sol";
@@ -10,6 +10,12 @@ contract Market is NilBase {
     mapping(uint256 nftId => Order) private s_orders;
     mapping(address buyer => uint256 nftId) private s_pendingBuyers;
     mapping(address => mapping(uint256 currencyId => uint256 balance)) private s_virtualBalance;
+
+    function bounce(string calldata err) external payable {
+        Nil.Token[] memory tokens = Nil.msgTokens();
+
+        s_virtualBalance[msg.sender][tokens[0].id] += tokens[0].amount;
+    }
 
     constructor() {}
 
@@ -58,8 +64,7 @@ contract Market is NilBase {
     }
 
     function put(uint256 _nftId, uint256 _currencyId, uint256 _price) public onlyInternal {
-        // uint256 allowance = IXWallet(msg.sender).allowance(address(this), _currencyId);
-        // require(allowance == 1);
+        // TODO uncoment when STATICCALL fixed: require(_checkAllowanceToMarket(msg.sender, _nftId, 1), "NFT is not approved");
         s_orders[_nftId] = Order(msg.sender, address(0), _currencyId, _price, OrderState.PLACED);
     }
 
@@ -68,7 +73,7 @@ contract Market is NilBase {
         require(order.price > 0, "Order not found");
         s_pendingBuyers[msg.sender] = _nftId;
 
-        // require(_checkAllowanceToMarket(msg.sender, order.currencyId, order.price), "Approved value low");
+        // TODO uncoment when STATICCALL fixed: require(_checkAllowanceToMarket(msg.sender, order.currencyId, order.price), "Approved value low");
         bool success = _transferFromAsync(msg.sender, address(this), Nil.Token(_nftId, order.price));
         require(success, "Buy is not initiated");
     }
@@ -98,6 +103,6 @@ contract Market is NilBase {
 
     function _checkAllowanceToMarket(address _from, uint256 _currencyId, uint256 _amount) private view returns (bool) {
         uint256 allowance = IXWallet(_from).allowance(address(this), _currencyId);
-        return allowance == _amount;
+        return allowance >= _amount;
     }
 }

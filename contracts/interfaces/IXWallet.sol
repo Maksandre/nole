@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.23;
+pragma solidity ^0.8.20;
 
 import "../nilcore/Nil.sol";
 
 interface IXWallet {
-    function allowance(address _spender, uint256 _token) external view returns (uint256);
+    event Approval(address indexed spender, uint256 indexed tokenId, uint256 amount);
 
-    function approve(address _spender, Nil.Token[] memory _tokens) external;
+    function allowance(address spender, uint256 token) external view returns (uint256);
 
-    function transfer(Nil.Token[] memory _tokens, address _recepient) external;
+    function approve(address spender, Nil.Token[] memory tokens) external;
+
+    function transfer(Nil.Token[] memory tokens, address recepient) external;
 }

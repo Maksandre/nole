@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.23;
+pragma solidity ^0.8.20;
 
 import "./nilcore/NilCurrencyBase.sol";
 import "./interfaces/IXWallet.sol";
@@ -25,9 +25,11 @@ contract XWallet is IXWallet, NilCurrencyBase {
         for (uint256 i = 0; i < length; i++) {
             Nil.Token memory tkn = _tokens[i];
             s_allowances[_spender][tkn.id] = tkn.amount;
+            emit Approval(_spender, tkn.id, tkn.amount);
         }
     }
 
+    // rename to approvedTransfer? transferFrom?
     function transfer(Nil.Token[] memory _tokens, address _recepient) public onlyInternal {
         uint256 length = _tokens.length;
         for (uint i = 0; i < length; i++) {
