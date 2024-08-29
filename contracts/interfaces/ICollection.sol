@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.23;
+pragma solidity ^0.8.20;
 
 interface ICollection {
     event Mint(address indexed receiver, uint256 tokenId);

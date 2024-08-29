@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.23;
+pragma solidity ^0.8.20;
 
 import "./nilcore/Nil.sol";
 import "./interfaces/IMinter.sol";
 
-contract Token is NilBase {
+contract XToken is NilBase {
     IMinter constant MINTER = IMinter(Nil.MINTER_ADDRESS);
 
     address private s_collectionAddress;
@@ -14,7 +14,7 @@ contract Token is NilBase {
         bool success = Nil.asyncCall(
             Nil.MINTER_ADDRESS,
             address(0), // refundTo
-            address(0), // bounceTo
+            msg.sender, // bounceTo
             0, // gas
             Nil.FORWARD_REMAINING, // forwardKind
             false, // deploy

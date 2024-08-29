@@ -14,8 +14,8 @@ import {
   SendMessageParams,
   waitTillCompleted,
 } from "@nilfoundation/niljs";
-import { encodeFunctionData } from "viem";
-import { NoleWalletOptions, Currency, DeployParams } from "./types";
+import { encodeFunctionData, hexToBigInt } from "viem";
+import { XWalletOptions, Currency, DeployParams } from "./types";
 import { prepareDeployPart } from "./utils/deployPart";
 
 export default class XWallet {
@@ -27,7 +27,7 @@ export default class XWallet {
     private artifacts: XWallet$Type,
   ) {}
 
-  static async init(options: NoleWalletOptions) {
+  static async init(options: XWalletOptions) {
     const artifact = await artifacts.readArtifact("XWallet");
     const client = new PublicClient({
       shardId: options.shardId,
@@ -64,7 +64,9 @@ export default class XWallet {
       args: [amount, name, withdraw],
     });
 
-    return this.callWaitResult(createCurrencyCalldata);
+    const receipts = await this.callWaitResult(createCurrencyCalldata);
+    const currencyId = hexToBigInt(this.address);
+    return { receipts, currencyId };
   }
 
   async getCurrencies(address: Hex, blockTagOrHash: Hex | BlockTag = "latest") {

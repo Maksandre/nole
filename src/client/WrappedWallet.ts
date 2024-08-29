@@ -6,7 +6,7 @@ import {
   WalletV1,
 } from "@nilfoundation/niljs";
 
-export type NoleConfig = {
+export type WalletConfig = {
   shardId: number;
   rpc: string;
   signerPrivateKey: Hex;
@@ -22,7 +22,7 @@ export default class WrappedWallet {
     this.signer = signer;
   }
 
-  static async init(config: NoleConfig): Promise<WrappedWallet> {
+  static async init(config: WalletConfig): Promise<WrappedWallet> {
     const client = new PublicClient({
       transport: new HttpTransport({
         endpoint: config.rpc,

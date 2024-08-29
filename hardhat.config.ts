@@ -17,6 +17,9 @@ const config: NilHardhatUserConfig = {
   },
   walletAddress: appConfig.walletAddress,
   debug: true,
+  mocha: {
+    timeout: 9999999,
+  },
 };
 
 export default config;
