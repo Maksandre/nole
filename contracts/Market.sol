@@ -48,8 +48,8 @@ contract Market is NilBase {
             // Check if msg.sender is buyer
             // and attached token is required one
             Order storage order = s_orders[tokenId];
-            require(order.currencyId == receivedToken.id);
-            require(order.price == receivedToken.amount);
+            require(order.currencyId == receivedToken.id, "Received currency differs from order's currency");
+            require(order.price == receivedToken.amount, "Received amount is not equal to order's price");
 
             // Top-up buyer's virtual balance
             s_virtualBalance[msg.sender][receivedToken.id] += receivedToken.amount;
@@ -59,12 +59,10 @@ contract Market is NilBase {
             // Make async transfer of NFT from seller's wallet
             _transferFromAsync(order.seller, address(this), Nil.Token(tokenId, 1));
         }
-
-        revert();
     }
 
     function put(uint256 _nftId, uint256 _currencyId, uint256 _price) public onlyInternal {
-        // TODO uncoment when STATICCALL fixed: require(_checkAllowanceToMarket(msg.sender, _nftId, 1), "NFT is not approved");
+        require(_checkAllowanceToMarket(msg.sender, _nftId, 1), "NFT is not approved");
         s_orders[_nftId] = Order(msg.sender, address(0), _currencyId, _price, OrderState.PLACED);
     }
 
@@ -73,8 +71,10 @@ contract Market is NilBase {
         require(order.price > 0, "Order not found");
         s_pendingBuyers[msg.sender] = _nftId;
 
-        // TODO uncoment when STATICCALL fixed: require(_checkAllowanceToMarket(msg.sender, order.currencyId, order.price), "Approved value low");
-        _transferFromAsync(msg.sender, address(this), Nil.Token(_nftId, order.price));
+        require(_checkAllowanceToMarket(msg.sender, order.currencyId, order.price), "Approved value low");
+
+        // transfer NFT to the escrow address
+        _transferFromAsync(msg.sender, address(this), Nil.Token(order.currencyId, order.price));
     }
 
     function withdraw() external {
