@@ -74,8 +74,7 @@ contract Market is NilBase {
         s_pendingBuyers[msg.sender] = _nftId;
 
         // TODO uncoment when STATICCALL fixed: require(_checkAllowanceToMarket(msg.sender, order.currencyId, order.price), "Approved value low");
-        bool success = _transferFromAsync(msg.sender, address(this), Nil.Token(_nftId, order.price));
-        require(success, "Buy is not initiated");
+        _transferFromAsync(msg.sender, address(this), Nil.Token(_nftId, order.price));
     }
 
     function withdraw() external {
@@ -94,7 +93,7 @@ contract Market is NilBase {
         return s_pendingBuyers[_buyer];
     }
 
-    function _transferFromAsync(address _from, address _to, Nil.Token memory _token) private returns (bool) {
+    function _transferFromAsync(address _from, address _to, Nil.Token memory _token) private {
         Nil.Token[] memory tokens = new Nil.Token[](1);
         tokens[0] = _token;
 

@@ -12,8 +12,8 @@
     "codestyle": "prettier . --write"
   },
   "dependencies": {
-    "@nilfoundation/hardhat-plugin": "^0.12.2",
-    "@nilfoundation/niljs": "^0.12.0",
+    "@nilfoundation/hardhat-plugin": "0.13.0",
+    "@nilfoundation/niljs": "0.13.0",
     "abitype": "^1.0.6",
     "dotenv": "^16.4.5",
     "eslint": "8.57.0",

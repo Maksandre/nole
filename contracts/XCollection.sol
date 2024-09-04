@@ -29,7 +29,7 @@ contract XCollection is ICollection {
 
     function mint(address _to, uint256 _tokenId) public {
         if (s_tokens[_tokenId] != address(0)) revert Collection__TokenMinted();
-        // TODO token name?
+
         XToken newToken = new XToken(_to, s_collectionSymbol, _tokenId, address(this));
         s_tokens[_tokenId] = address(newToken);
     }

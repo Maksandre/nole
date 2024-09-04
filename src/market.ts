@@ -18,7 +18,7 @@ export const main = async () => {
     42n,
   );
 
-  const buyerCurrency = await buyer.createCurrency("Buyer's", 1000n, true);
+  const buyerCurrency = await buyer.createCurrency(1000n);
 
   const market = await seller.deployContract({
     abi: marketArtifacts.abi,
@@ -29,7 +29,7 @@ export const main = async () => {
     salt: 42n,
   });
 
-  const nftId = hexToBigInt("0x0001bf3fe07f1b8b3b3be6688e0cf007d76d30c6");
+  const nftId = hexToBigInt("0x000106c90ed35bfbce91abf5ec2178db69236101");
   const approval = await seller.approve(market.address, [
     {
       id: nftId,

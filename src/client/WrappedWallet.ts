@@ -4,6 +4,8 @@ import {
   LocalECDSAKeySigner,
   PublicClient,
   WalletV1,
+  Faucet,
+  generateRandomPrivateKey,
 } from "@nilfoundation/niljs";
 
 export type WalletConfig = {
@@ -23,12 +25,7 @@ export default class WrappedWallet {
   }
 
   static async init(config: WalletConfig): Promise<WrappedWallet> {
-    const client = new PublicClient({
-      transport: new HttpTransport({
-        endpoint: config.rpc,
-      }),
-      shardId: config.shardId,
-    });
+    const client = this._initClient(config);
 
     const signer = new LocalECDSAKeySigner({
       privateKey: config.signerPrivateKey,
@@ -44,11 +41,55 @@ export default class WrappedWallet {
     return new WrappedWallet(wallet, signer);
   }
 
+  static async deploy(
+    rpc: string,
+    shardId: number,
+    salt: bigint,
+    privateKey?: Hex,
+  ) {
+    const client = this._initClient({ rpc, shardId });
+
+    const faucet = new Faucet(client);
+
+    const signer = new LocalECDSAKeySigner({
+      privateKey: privateKey ?? generateRandomPrivateKey(),
+    });
+
+    const pubkey = await signer.getPublicKey();
+
+    const wallet = new WalletV1({
+      pubkey,
+      signer,
+      client,
+      shardId: 1,
+      salt,
+    });
+
+    const walletAddress = wallet.getAddressHex();
+
+    await faucet.withdrawToWithRetry(walletAddress, 300_000_000n);
+
+    await wallet.selfDeploy(true);
+
+    return new WrappedWallet(wallet, signer);
+  }
+
   connect(wallet: WalletV1, signer: LocalECDSAKeySigner): WrappedWallet {
     return new WrappedWallet(wallet, signer);
   }
 
   sendMessage() {
     // this.wallet.sendMessage();
+  }
+
+  private static _initClient(config: { rpc: string; shardId: number }) {
+    const client = new PublicClient({
+      transport: new HttpTransport({
+        endpoint: config.rpc,
+      }),
+      shardId: config.shardId,
+    });
+
+    return client;
   }
 }
