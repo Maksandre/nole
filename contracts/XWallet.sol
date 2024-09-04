@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./nilcore/NilCurrencyBase.sol";
+import "@nilfoundation/smart-contracts/contracts/NilCurrencyBase.sol";
 import "./interfaces/IXWallet.sol";
 
 contract XWallet is IXWallet, NilCurrencyBase {

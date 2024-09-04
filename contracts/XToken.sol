@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./nilcore/Nil.sol";
-import "./nilcore/NilCurrencyBase.sol";
+import "@nilfoundation/smart-contracts/contracts/Nil.sol";
+import "@nilfoundation/smart-contracts/contracts/NilCurrencyBase.sol";
 
 contract XToken is NilBase, NilCurrencyBase {
     address private s_collectionAddress;

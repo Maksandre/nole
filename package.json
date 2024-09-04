@@ -20,6 +20,7 @@
     "hardhat": "^2.22.8"
   },
   "devDependencies": {
+    "@nilfoundation/smart-contracts": "^0.1.0",
     "@nomicfoundation/hardhat-ignition": "^0.15.0",
     "@nomicfoundation/hardhat-ignition-viem": "^0.15.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",

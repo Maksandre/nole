@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./interfaces/IXWallet.sol";
-import "./XToken.sol";
-import "./nilcore/Nil.sol";
+import "@nilfoundation/smart-contracts/contracts/NilCurrencyBase.sol";
+import "@nilfoundation/smart-contracts/contracts/Nil.sol";
+import {IXWallet} from "./interfaces/IXWallet.sol";
+import {XToken} from "./XToken.sol";
 import "./types/Order.sol";
 
 contract Market is NilBase {

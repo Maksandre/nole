@@ -523,6 +523,11 @@
     tiny-invariant "^1.3.3"
     viem "^2.16.3"
 
+"@nilfoundation/smart-contracts@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@nilfoundation/smart-contracts/-/smart-contracts-0.1.0.tgz#7099d542533ad886a366667f768e1d5ab6a0b5f6"
+  integrity sha512-GYel+o7mXXYSawjunwllP+Ju/emxunNjbVgQpfhMJac2b9YGOEbrr7lAPrLiLuGAjCY929AsJFgzOliVM5Pgsw==
+
 "@noble/curves@1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.2.0.tgz#92d7e12e4e49b23105a2555c6984d41733d65c35"
