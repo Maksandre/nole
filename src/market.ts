@@ -5,6 +5,7 @@ import { deployXWallet } from "./scripts/deploy-xwallet";
 import { encodeFunctionData, hexToBigInt } from "viem";
 
 export const main = async () => {
+  const nftAddress = "0x0001a28d1f1d278a9848707f007906920854e652";
   const marketArtifacts = await artifacts.readArtifact("Market");
 
   const seller = await XWallet.init({
@@ -18,7 +19,7 @@ export const main = async () => {
     42n,
   );
 
-  const buyerCurrency = await buyer.createCurrency("Buyer's", 1000n, true);
+  const buyerCurrency = await buyer.createCurrency(1000n);
 
   const market = await seller.deployContract({
     abi: marketArtifacts.abi,
@@ -29,7 +30,7 @@ export const main = async () => {
     salt: 42n,
   });
 
-  const nftId = hexToBigInt("0x0001bf3fe07f1b8b3b3be6688e0cf007d76d30c6");
+  const nftId = hexToBigInt(nftAddress);
   const approval = await seller.approve(market.address, [
     {
       id: nftId,
@@ -53,7 +54,7 @@ export const main = async () => {
 
   const buy = await buyer.sendMessage({
     to: market.address,
-    feeCredit: 10_000_000n,
+    feeCredit: 300_000_000n,
     data: encodeFunctionData({
       abi: marketArtifacts.abi,
       functionName: "initBuy",

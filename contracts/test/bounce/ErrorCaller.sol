@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../../nilcore/Nil.sol";
+import "@nilfoundation/smart-contracts/contracts/Nil.sol";
 import "./ErrorSource.sol";
 
 contract Test_ErrorCaller is NilBounceable {

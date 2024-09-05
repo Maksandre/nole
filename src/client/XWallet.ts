@@ -57,15 +57,16 @@ export default class XWallet {
     return this.callWaitResult(approveCalldata);
   }
 
-  async createCurrency(name: string, amount: bigint, withdraw = true) {
+  async createCurrency(amount: bigint) {
     const createCurrencyCalldata = encodeFunctionData({
       abi: this.artifacts.abi,
-      functionName: "createToken",
-      args: [amount, name, withdraw],
+      functionName: "mintCurrency",
+      args: [amount],
     });
 
     const receipts = await this.callWaitResult(createCurrencyCalldata);
     const currencyId = hexToBigInt(this.address);
+
     return { receipts, currencyId };
   }
 

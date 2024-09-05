@@ -25,7 +25,7 @@ export const main = async () => {
 
   const mintingResult = await nil.sendMessage({
     to: collectionAddress,
-    feeCredit: 1_000_000n,
+    feeCredit: 10_000_000n,
     data: encodeFunctionData({
       abi: collectionArtifacts.abi,
       functionName: "mint",

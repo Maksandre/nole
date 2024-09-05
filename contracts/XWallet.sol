@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./nilcore/NilCurrencyBase.sol";
+import "@nilfoundation/smart-contracts/contracts/NilCurrencyBase.sol";
 import "./interfaces/IXWallet.sol";
 
 contract XWallet is IXWallet, NilCurrencyBase {
@@ -55,18 +55,7 @@ contract XWallet is IXWallet, NilCurrencyBase {
         uint256 _value,
         bytes calldata _callData
     ) public onlyExternal {
-        bool success = Nil.asyncCall(
-            _dst,
-            _refundTo,
-            _bounceTo,
-            _gas,
-            Nil.FORWARD_NONE,
-            _deploy,
-            _value,
-            _tokens,
-            _callData
-        );
-        require(success, "asyncCall failed");
+        Nil.asyncCall(_dst, _refundTo, _bounceTo, _gas, Nil.FORWARD_NONE, _deploy, _value, _tokens, _callData);
     }
 
     function syncCall(address _dst, uint256 _gas, uint256 _value, bytes memory _call_data) public onlyExternal {

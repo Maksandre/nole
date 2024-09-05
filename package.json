@@ -12,14 +12,15 @@
     "codestyle": "prettier . --write"
   },
   "dependencies": {
-    "@nilfoundation/hardhat-plugin": "^0.12.2",
-    "@nilfoundation/niljs": "^0.12.0",
+    "@nilfoundation/hardhat-plugin": "0.13.0",
+    "@nilfoundation/niljs": "0.13.0",
     "abitype": "^1.0.6",
     "dotenv": "^16.4.5",
     "eslint": "8.57.0",
     "hardhat": "^2.22.8"
   },
   "devDependencies": {
+    "@nilfoundation/smart-contracts": "^0.1.0",
     "@nomicfoundation/hardhat-ignition": "^0.15.0",
     "@nomicfoundation/hardhat-ignition-viem": "^0.15.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
