@@ -4,7 +4,7 @@
   "main": "index.js",
   "repository": "https://github.com/Maksandre/nole.git",
   "author": "Maksandre <maxick20@gmail.com>",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "scripts": {
     "test:hh": "npx hardhat test --no-compile",
     "run:hh": "npx hardhat run --no-compile",
