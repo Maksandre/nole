@@ -8,7 +8,7 @@ contract XCollection is ICollection {
     string private s_collectionName;
     string private s_collectionSymbol;
 
-    mapping(uint256 tokenId => address tokenAddress) s_tokens;
+    mapping(uint256 tokenId => address tokenAddress) private s_tokens;
 
     constructor(string memory _collectionName, string memory _symbol) {
         s_collectionName = _collectionName;
