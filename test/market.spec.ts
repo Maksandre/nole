@@ -1,9 +1,8 @@
 import { artifacts } from "hardhat";
 import { deployRandomXWallet } from "../src/scripts/deploy-xwallet";
-import { decodeFunctionResult, encodeFunctionData } from "viem";
 import { hexToBigInt } from "@nilfoundation/niljs";
 import { expect } from "chai";
-import { Market } from "../src/client/contracts/Market";
+import { XContract } from "../src/client/XContract";
 
 it("Marketplace e2e scenario", async () => {
   const marketArtifacts = await artifacts.readArtifact("Market");
@@ -15,109 +14,77 @@ it("Marketplace e2e scenario", async () => {
   const seller = await deployRandomXWallet();
   const buyer = await deployRandomXWallet();
 
-  const nftCollection = await seller.deployContract({
-    bytecode: collectionArtifacts.bytecode,
-    abi: collectionArtifacts.abi,
-    args: ["Collection Name", "SMBL"],
-    feeCredit: 3_000_000n,
-    salt: BigInt(Date.now()),
-    shardId: SHARD_ID,
-  });
+  const nftCollection = await XContract.deploy(
+    seller,
+    collectionArtifacts,
+    ["Collection Name", "SYMBOL"],
+    1,
+  );
 
-  const nft = await seller.sendMessage({
-    to: nftCollection.address,
-    feeCredit: 10_000_000n,
-    data: encodeFunctionData({
-      abi: collectionArtifacts.abi,
+  await nftCollection.sendMessage(
+    {
       functionName: "mint",
       args: [seller.address, NFT_ID],
-    }),
-  });
+    },
+    10_000_000n,
+  );
 
-  const nftAddress = await seller.client
-    .call(
-      {
-        to: nftCollection.address,
-        data: encodeFunctionData({
-          abi: collectionArtifacts.abi,
-          functionName: "getTokenAddress",
-          args: [NFT_ID],
-        }),
-      },
-      "latest",
-    )
-    .then((r) =>
-      decodeFunctionResult({
-        abi: collectionArtifacts.abi,
-        functionName: "getTokenAddress",
-        data: r.data,
-      }),
-    );
-
-  const nftId = hexToBigInt(nftAddress);
+  const nftId = await nftCollection
+    .call({
+      functionName: "getTokenAddress",
+      args: [NFT_ID],
+    })
+    .then(hexToBigInt);
 
   const buyerCurrency = await buyer.createCurrency(1000n);
 
-  const market = await seller.deployContract({
-    abi: marketArtifacts.abi,
-    args: [],
-    bytecode: marketArtifacts.bytecode,
-    feeCredit: 5_000_000n,
-    shardId: SHARD_ID,
-    salt: BigInt(Date.now()),
-  });
+  const market = await XContract.deploy(seller, marketArtifacts, [], SHARD_ID);
 
-  const xmarket = await Market.init(seller.client, market.address);
-
-  const approval = await seller.approve(market.address, [
+  await seller.approve(market.address, [
     {
       id: nftId,
       amount: 1n,
     },
   ]);
 
-  const put = await seller.sendMessage({
-    to: market.address,
-    feeCredit: 3_000_000n,
-    data: encodeFunctionData({
+  await market.sendMessage(
+    {
       functionName: "put",
-      abi: marketArtifacts.abi,
       args: [nftId, buyerCurrency.currencyId, PRICE],
-    }),
-  });
+    },
+    3_000_000n,
+  );
 
-  const buyerApprove = await buyer.approve(market.address, [
+  await buyer.approve(market.address, [
     { id: buyerCurrency.currencyId, amount: PRICE },
   ]);
 
-  const buy = await buyer.sendMessage({
-    to: market.address,
-    feeCredit: 300_000_000n,
-    data: encodeFunctionData({
-      abi: marketArtifacts.abi,
+  await market.connect(buyer).sendMessage(
+    {
       functionName: "initBuy",
       args: [nftId],
-    }),
-  });
+    },
+    300_000_000n,
+  );
 
   //////// ASSERT ////////
 
-  const sellerNftBalance = await xmarket.call({
+  const sellerNftBalance = await market.call({
     functionName: "getBalance",
     args: [seller.address, nftId],
   });
 
-  const sellerFungibleBalance = await xmarket.call({
+  const sellerFungibleBalance = await market.call({
     functionName: "getBalance",
     args: [seller.address, buyerCurrency.currencyId],
   });
 
-  const buyerNftBalance = await xmarket.call({
+  const buyerNftBalance = await market.call({
     functionName: "getBalance",
     args: [buyer.address, nftId],
   });
 
-  const buyerFungibleBalance = await xmarket.call({
+  const buyerFungibleBalance = await market.call({
     functionName: "getBalance",
     args: [buyer.address, buyerCurrency.currencyId],
   });
