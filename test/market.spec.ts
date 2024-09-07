@@ -3,6 +3,7 @@ import { deployRandomXWallet } from "../src/scripts/deploy-xwallet";
 import { decodeFunctionResult, encodeFunctionData } from "viem";
 import { hexToBigInt } from "@nilfoundation/niljs";
 import { expect } from "chai";
+import { Market } from "../src/client/contracts/Market";
 
 it("Marketplace e2e scenario", async () => {
   const marketArtifacts = await artifacts.readArtifact("Market");
@@ -66,6 +67,8 @@ it("Marketplace e2e scenario", async () => {
     salt: BigInt(Date.now()),
   });
 
+  const xmarket = await Market.init(seller.client, market.address);
+
   const approval = await seller.approve(market.address, [
     {
       id: nftId,
@@ -99,9 +102,29 @@ it("Marketplace e2e scenario", async () => {
 
   //////// ASSERT ////////
 
-  const sellerCurrencies = await seller.getCurrencies();
-  const buyerCurrencies = await buyer.getCurrencies();
+  const sellerNftBalance = await xmarket.call({
+    functionName: "getBalance",
+    args: [seller.address, nftId],
+  });
 
-  expect(sellerCurrencies).has.property(buyer.address).eq(PRICE);
-  expect(buyerCurrencies).has.property(nftAddress).eq(1);
+  const sellerFungibleBalance = await xmarket.call({
+    functionName: "getBalance",
+    args: [seller.address, buyerCurrency.currencyId],
+  });
+
+  const buyerNftBalance = await xmarket.call({
+    functionName: "getBalance",
+    args: [buyer.address, nftId],
+  });
+
+  const buyerFungibleBalance = await xmarket.call({
+    functionName: "getBalance",
+    args: [buyer.address, buyerCurrency.currencyId],
+  });
+
+  expect(sellerNftBalance).to.eq(0n);
+  expect(buyerNftBalance).to.eq(1n);
+
+  expect(sellerFungibleBalance).to.eq(PRICE);
+  expect(buyerFungibleBalance).to.eq(0n);
 });
