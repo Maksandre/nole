@@ -9,7 +9,6 @@ import {
   EncodeFunctionDataParameters,
 } from "viem";
 import XWallet from "./XWallet";
-import { Artifact } from "hardhat/types";
 
 export class XContract<T extends Abi> {
   constructor(
