@@ -63,11 +63,12 @@ contract Market is NilBase {
     }
 
     function put(uint256 _nftId, uint256 _currencyId, uint256 _price) public onlyInternal {
+        // TODO: if wallet does not support approve/transferFrom it should be able to transfer token directly
         require(_checkAllowanceToMarket(msg.sender, _nftId, 1), "NFT is not approved");
         s_orders[_nftId] = Order(msg.sender, address(0), _currencyId, _price, OrderState.PLACED);
     }
 
-    function initBuy(uint256 _nftId) external {
+    function buy(uint256 _nftId) external {
         Order storage order = s_orders[_nftId];
         require(order.price > 0, "Order not found");
         s_pendingBuyers[msg.sender] = _nftId;

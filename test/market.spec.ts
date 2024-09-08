@@ -61,7 +61,7 @@ it("Marketplace e2e scenario", async () => {
 
   await market.connect(buyer).sendMessage(
     {
-      functionName: "initBuy",
+      functionName: "buy",
       args: [nftId],
     },
     300_000_000n,
