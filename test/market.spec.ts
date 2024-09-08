@@ -26,7 +26,7 @@ it("Marketplace e2e scenario", async () => {
       functionName: "mint",
       args: [seller.address, NFT_ID],
     },
-    10_000_000n,
+    { feeCredit: 10_000_000n },
   );
 
   const nftId = await nftCollection
@@ -47,24 +47,23 @@ it("Marketplace e2e scenario", async () => {
     },
   ]);
 
-  await market.sendMessage(
+  const put = await market.sendMessage(
     {
       functionName: "put",
       args: [nftId, buyerCurrency.currencyId, PRICE],
     },
-    3_000_000n,
+    { feeCredit: 3_000_000n },
   );
 
-  await buyer.approve(market.address, [
-    { id: buyerCurrency.currencyId, amount: PRICE },
-  ]);
-
-  await market.connect(buyer).sendMessage(
+  const buy = await market.connect(buyer).sendMessage(
     {
       functionName: "buy",
       args: [nftId],
     },
-    300_000_000n,
+    {
+      feeCredit: 300_000_000n,
+      tokens: [{ id: buyerCurrency.currencyId, amount: PRICE }],
+    },
   );
 
   //////// ASSERT ////////

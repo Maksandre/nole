@@ -9,6 +9,7 @@ import {
   EncodeFunctionDataParameters,
 } from "viem";
 import XWallet from "./XWallet";
+import { MessageTokens } from "./types";
 
 export class XContract<T extends Abi> {
   constructor(
@@ -50,11 +51,13 @@ export class XContract<T extends Abi> {
 
   async sendMessage<functionName extends ContractFunctionName<T>>(
     params: Omit<EncodeFunctionDataParameters<T, functionName>, "abi">,
-    feeCredit: bigint,
+    messageTokens: MessageTokens,
   ) {
     return this.wallet.sendMessage({
       to: this.address,
-      feeCredit,
+      feeCredit: messageTokens.feeCredit,
+      value: messageTokens.value,
+      tokens: messageTokens.tokens,
       data: encodeFunctionData({
         abi: this.abi as any,
         functionName: params.functionName,
