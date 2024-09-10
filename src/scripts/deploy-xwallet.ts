@@ -3,7 +3,6 @@ import {
   generateRandomPrivateKey,
   getPublicKey,
   Hex,
-  LocalECDSAKeySigner,
 } from "@nilfoundation/niljs";
 import { artifacts } from "hardhat";
 import XWallet from "../client/XWallet";
