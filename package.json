@@ -4,7 +4,7 @@
   "main": "index.js",
   "repository": "https://github.com/Maksandre/nole.git",
   "author": "Maksandre <maxick20@gmail.com>",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "scripts": {
     "test:hh": "npx hardhat test --no-compile",
     "run:hh": "npx hardhat run --no-compile",
@@ -27,6 +27,7 @@
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.0",
     "@nomicfoundation/hardhat-viem": "^2.0.0",
+    "@openzeppelin/contracts": "^5.0.2",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.6",
     "@types/mocha": ">=9.1.0",

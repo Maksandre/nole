@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
 import "./interfaces/ICollection.sol";
@@ -8,7 +8,7 @@ contract XCollection is ICollection {
     string private s_collectionName;
     string private s_collectionSymbol;
 
-    mapping(uint256 tokenId => address tokenAddress) s_tokens;
+    mapping(uint256 tokenId => address tokenAddress) private s_tokens;
 
     constructor(string memory _collectionName, string memory _symbol) {
         s_collectionName = _collectionName;

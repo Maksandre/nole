@@ -13,6 +13,12 @@ export type Currency = {
   amount: bigint;
 };
 
+export type MessageTokens = {
+  feeCredit: bigint;
+  value?: bigint;
+  tokens?: Currency[];
+};
+
 export type DeployParams = {
   bytecode: Uint8Array | Hex;
   abi: Abi;

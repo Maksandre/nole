@@ -70,8 +70,8 @@ export default class XWallet {
     return { receipts, currencyId };
   }
 
-  async getCurrencies(address: Hex, blockTagOrHash: Hex | BlockTag = "latest") {
-    return this.client.getCurrencies(address, blockTagOrHash);
+  async getCurrencies(blockTagOrHash: Hex | BlockTag = "latest") {
+    return this.client.getCurrencies(this.address, blockTagOrHash);
   }
 
   async deployContract(params: DeployParams) {

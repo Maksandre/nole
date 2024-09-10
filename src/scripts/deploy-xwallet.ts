@@ -1,4 +1,10 @@
-import { Faucet, getPublicKey, Hex } from "@nilfoundation/niljs";
+import {
+  Faucet,
+  generateRandomPrivateKey,
+  getPublicKey,
+  Hex,
+  LocalECDSAKeySigner,
+} from "@nilfoundation/niljs";
 import { artifacts } from "hardhat";
 import XWallet from "../client/XWallet";
 import config from "../client/utils/config";
@@ -37,4 +43,11 @@ export const deployXWallet = async (
     rpc: config.rpc,
     shardId: config.shardId,
   });
+};
+
+export const deployRandomXWallet = async (topUp: boolean = true) => {
+  const randomPrivateKey = generateRandomPrivateKey();
+  const salt = BigInt(Date.now());
+
+  return deployXWallet(randomPrivateKey, topUp, salt);
 };

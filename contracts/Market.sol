@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
 import "@nilfoundation/smart-contracts/contracts/NilCurrencyBase.sol";
@@ -9,73 +9,63 @@ import "./types/Order.sol";
 
 contract Market is NilBase {
     mapping(uint256 nftId => Order) private s_orders;
-    mapping(address buyer => uint256 nftId) private s_pendingBuyers;
     mapping(address => mapping(uint256 currencyId => uint256 balance)) private s_virtualBalance;
 
     function bounce(string calldata err) external payable {
         Nil.Token[] memory tokens = Nil.msgTokens();
 
+        // TODO: hardcoded only one token
         s_virtualBalance[msg.sender][tokens[0].id] += tokens[0].amount;
     }
 
     constructor() {}
 
+    /// @dev receive function is only for NFTs sent by transferFrom
     receive() external payable {
         // Get received currency and check only one attached
-        Nil.Token[] memory tokens = Nil.msgTokens();
-        require(tokens.length == 1, "Multiple currencies are not supported");
-        Nil.Token memory receivedToken = tokens[0];
+        Nil.Token memory attachedToken = _getAttachedCurrency();
+        require(s_orders[attachedToken.id].price >= 0, "Received token is not NFT on sale");
 
-        // If received currency is NFT on sale
-        if (s_orders[receivedToken.id].state == OrderState.BUY_CURRENCY_RECEIVED) {
-            // msg.sender is SELLER
-            // receivedToken is NFT
-            require(receivedToken.amount == 1, "NFT amount should be 1");
-            Order storage order = s_orders[receivedToken.id];
-            // change order status
-            order.state = OrderState.SWAPPED;
+        Order storage order = s_orders[attachedToken.id];
 
-            // Swap NFT and currency virtually.
-            // NFT goes to buyer, currency moves to seller
-            s_virtualBalance[msg.sender][order.currencyId] += order.price;
-            s_virtualBalance[order.buyer][order.currencyId] -= order.price;
-            s_virtualBalance[order.buyer][receivedToken.id] += 1;
-        } else {
-            // TODO check allowance of an NFT and if it is not allowed - refund and remove Order
-            // msg.sender is BUYER
-            uint256 tokenId = s_pendingBuyers[msg.sender];
-            require(tokenId != 0, "Sender is not a buyer");
+        // Get pendingBuyer and check it's balance
+        require(order.buyer != address(0), "No pending buyers");
+        require(s_virtualBalance[order.buyer][order.currencyId] >= order.price, "Buyer's virtual balance low");
 
-            // Check if msg.sender is buyer
-            // and attached token is required one
-            Order storage order = s_orders[tokenId];
-            require(order.currencyId == receivedToken.id, "Received currency differs from order's currency");
-            require(order.price == receivedToken.amount, "Received amount is not equal to order's price");
-
-            // Top-up buyer's virtual balance
-            s_virtualBalance[msg.sender][receivedToken.id] += receivedToken.amount;
-            order.state = OrderState.BUY_CURRENCY_RECEIVED;
-            order.buyer = msg.sender;
-
-            // Make async transfer of NFT from seller's wallet
-            _transferFromAsync(order.seller, address(this), Nil.Token(tokenId, 1));
-        }
+        // Swap NFT and currency virtually
+        s_virtualBalance[order.buyer][order.currencyId] -= order.price;
+        s_virtualBalance[order.seller][order.currencyId] += order.price;
+        s_virtualBalance[order.buyer][attachedToken.id] += attachedToken.amount;
     }
 
     function put(uint256 _nftId, uint256 _currencyId, uint256 _price) public onlyInternal {
+        // TODO: if wallet does not support approve/transferFrom it should be able to transfer token directly
         require(_checkAllowanceToMarket(msg.sender, _nftId, 1), "NFT is not approved");
         s_orders[_nftId] = Order(msg.sender, address(0), _currencyId, _price, OrderState.PLACED);
     }
 
-    function initBuy(uint256 _nftId) external {
+    function buy(uint256 _nftId) external payable {
         Order storage order = s_orders[_nftId];
         require(order.price > 0, "Order not found");
-        s_pendingBuyers[msg.sender] = _nftId;
+        require(order.buyer == address(0), "Order has pending buyer");
 
-        require(_checkAllowanceToMarket(msg.sender, order.currencyId, order.price), "Approved value low");
+        // Check order currency and price are eq to received tokens
+        if (order.currencyId == 0) {
+            // Order currency = native token
+            require(msg.value == order.price, "Received amount is not equal to order's price");
+        } else {
+            // Order currenct = custom token
+            Nil.Token memory attachedToken = _getAttachedCurrency();
+            require(attachedToken.amount == order.price, "Received amount is not equal to order's price");
+        }
 
-        // transfer NFT to the escrow address
-        _transferFromAsync(msg.sender, address(this), Nil.Token(order.currencyId, order.price));
+        // Increase virtual balance
+        s_virtualBalance[msg.sender][order.currencyId] += order.price;
+
+        order.buyer = msg.sender;
+
+        // init NFT transferFrom
+        _transferFromAsync(order.seller, address(this), Nil.Token(_nftId, 1));
     }
 
     function withdraw() external {
@@ -90,8 +80,8 @@ contract Market is NilBase {
         return s_orders[_nftId];
     }
 
-    function getPendingBuyer(address _buyer) external view returns (uint256) {
-        return s_pendingBuyers[_buyer];
+    function getPendingBuyer(uint256 _nftId) external view returns (address) {
+        return s_orders[_nftId].buyer;
     }
 
     function _transferFromAsync(address _from, address _to, Nil.Token memory _token) private {
@@ -104,5 +94,11 @@ contract Market is NilBase {
     function _checkAllowanceToMarket(address _from, uint256 _currencyId, uint256 _amount) private view returns (bool) {
         uint256 allowance = IXWallet(_from).allowance(address(this), _currencyId);
         return allowance >= _amount;
+    }
+
+    function _getAttachedCurrency() private returns (Nil.Token memory) {
+        Nil.Token[] memory tokens = Nil.msgTokens();
+        require(tokens.length == 1, "Multiple currencies are not supported");
+        return tokens[0];
     }
 }
