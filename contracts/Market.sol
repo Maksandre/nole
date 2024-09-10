@@ -36,6 +36,9 @@ contract Market is NilBase {
         s_virtualBalance[order.buyer][order.currencyId] -= order.price;
         s_virtualBalance[order.seller][order.currencyId] += order.price;
         s_virtualBalance[order.buyer][attachedToken.id] += attachedToken.amount;
+
+        _withdrawAsync(order.buyer, attachedToken);
+        _withdrawAsync(order.seller, Nil.Token(order.currencyId, order.price));
     }
 
     function put(uint256 _nftId, uint256 _currencyId, uint256 _price) public onlyInternal {
@@ -68,8 +71,8 @@ contract Market is NilBase {
         _transferFromAsync(order.seller, address(this), Nil.Token(_nftId, 1));
     }
 
-    function withdraw() external {
-        revert("Not implemented");
+    function withdraw(Nil.Token memory _token) external {
+        _withdrawAsync(msg.sender, _token);
     }
 
     function getBalance(address _owner, uint256 _token) external view returns (uint256) {
@@ -82,6 +85,18 @@ contract Market is NilBase {
 
     function getPendingBuyer(uint256 _nftId) external view returns (address) {
         return s_orders[_nftId].buyer;
+    }
+
+    function _withdrawAsync(address _to, Nil.Token memory _token) private {
+        require(s_virtualBalance[_to][_token.id] >= _token.amount);
+        s_virtualBalance[_to][_token.id] -= _token.amount;
+
+        Nil.Token[] memory tokens = new Nil.Token[](1);
+        tokens[0] = _token;
+
+        // TODO: this function potentially leads to loosing funds
+        // if async transfer will fail and there are not enough funds to pay for gas in bounce
+        Nil.asyncCall(_to, address(this), address(this), 0, Nil.FORWARD_REMAINING, false, 0, tokens, "");
     }
 
     function _transferFromAsync(address _from, address _to, Nil.Token memory _token) private {
