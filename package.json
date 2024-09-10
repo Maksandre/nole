@@ -6,6 +6,7 @@
   "author": "Maksandre <maxick20@gmail.com>",
   "license": "UNLICENSED",
   "scripts": {
+    "test": "npx hardhat test",
     "test:hh": "npx hardhat test --no-compile",
     "run:hh": "npx hardhat run --no-compile",
     "compile": "npx hardhat compile --force",
