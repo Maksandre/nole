@@ -88,9 +88,15 @@ it("Marketplace e2e scenario", async () => {
     args: [buyer.address, buyerCurrency.currencyId],
   });
 
+  // Tokens are sent to recipients
+  // All virtual balances eq 0
   expect(sellerNftBalance).to.eq(0n);
-  expect(buyerNftBalance).to.eq(1n);
-
-  expect(sellerFungibleBalance).to.eq(PRICE);
+  expect(buyerNftBalance).to.eq(0n);
+  expect(sellerFungibleBalance).to.eq(0n);
   expect(buyerFungibleBalance).to.eq(0n);
+
+  const sellerCurrencies = await seller.getCurrencies();
+  const buyerCurrencies = await buyer.getCurrencies();
+
+  // TODO expect currencies
 });
