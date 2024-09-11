@@ -17,6 +17,7 @@ import {
 import { encodeFunctionData, hexToBigInt } from "viem";
 import { XWalletOptions, Currency, DeployParams } from "./types";
 import { prepareDeployPart } from "./utils/deployPart";
+import { expectAllReceiptsSuccess } from "./utils/receipt";
 
 export default class XWallet {
   private constructor(
@@ -163,6 +164,13 @@ export default class XWallet {
 
     const messageHash = await this.client.sendRawMessage(raw);
 
-    return waitTillCompleted(this.client, this.shardId, messageHash);
+    const receipts = await waitTillCompleted(
+      this.client,
+      this.shardId,
+      messageHash,
+    );
+    expectAllReceiptsSuccess(receipts);
+
+    return receipts;
   }
 }

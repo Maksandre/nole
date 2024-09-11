@@ -3,11 +3,13 @@ import {
   generateRandomPrivateKey,
   getPublicKey,
   Hex,
+  waitTillCompleted,
 } from "@nilfoundation/niljs";
 import { artifacts } from "hardhat";
 import XWallet from "../client/XWallet";
 import config from "../client/utils/config";
 import WrappedWallet from "../client/WrappedWallet";
+import { expectAllReceiptsSuccess } from "../client/utils/receipt";
 
 export const deployXWallet = async (
   privateKey: Hex,
@@ -28,6 +30,13 @@ export const deployXWallet = async (
     salt: salt ?? BigInt(Date.now()),
     shardId: config.shardId,
   });
+
+  const receipts = await waitTillCompleted(
+    wallet.wallet.client,
+    config.shardId,
+    newWallet.hash,
+  );
+  expectAllReceiptsSuccess(receipts);
 
   if (topUp) {
     const faucet = new Faucet(wallet.wallet.client);

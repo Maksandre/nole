@@ -10,6 +10,7 @@ import {
 } from "viem";
 import XWallet from "./XWallet";
 import { MessageTokens } from "./types";
+import { expectAllReceiptsSuccess } from "./utils/receipt";
 
 export class XContract<T extends Abi> {
   constructor(
@@ -33,7 +34,7 @@ export class XContract<T extends Abi> {
     shardId: number,
     salt?: bigint,
   ): Promise<XContract<T>> {
-    const { address } = await wallet.deployContract({
+    const { address, receipts } = await wallet.deployContract({
       abi: artifact.abi,
       args: args as unknown[],
       bytecode: artifact.bytecode,
@@ -41,6 +42,8 @@ export class XContract<T extends Abi> {
       shardId,
       salt: salt ?? BigInt(Date.now()),
     });
+
+    expectAllReceiptsSuccess(receipts);
 
     return new XContract(wallet, artifact.abi, address);
   }
@@ -52,8 +55,9 @@ export class XContract<T extends Abi> {
   async sendMessage<functionName extends ContractFunctionName<T>>(
     params: Omit<EncodeFunctionDataParameters<T, functionName>, "abi">,
     messageTokens: MessageTokens,
+    expectSuccess = true,
   ) {
-    return this.wallet.sendMessage({
+    const receipts = await this.wallet.sendMessage({
       to: this.address,
       feeCredit: messageTokens.feeCredit,
       value: messageTokens.value,
@@ -64,6 +68,10 @@ export class XContract<T extends Abi> {
         args: params.args as any,
       }),
     });
+
+    if (expectSuccess) expectAllReceiptsSuccess(receipts);
+
+    return receipts;
   }
 
   async call<functionName extends ContractFunctionName<T>>(
