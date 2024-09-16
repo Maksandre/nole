@@ -8,13 +8,11 @@ const getConfig = () => {
   if (!NIL_RPC_ENDPOINT || !PRIVATE_KEY || !WALLET_ADDRESS)
     throw Error("Did you forget to set .env?");
 
-  const shardId = 1;
-
   return {
     rpc: NIL_RPC_ENDPOINT,
     signerPrivateKey: PRIVATE_KEY as Hex,
     walletAddress: WALLET_ADDRESS.toLowerCase() as Hex,
-    shardId,
+    shardId: 1,
   };
 };
 
