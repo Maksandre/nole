@@ -1,10 +1,8 @@
 import { artifacts } from "hardhat";
 import { hexToBigInt } from "@nilfoundation/niljs";
 import { expect } from "chai";
-import { XContract } from "../src/client/XContract";
-import XWallet from "../src/client/XWallet";
-import { XClient } from "../src/client/XClient";
-import config from "../src/client/utils/config";
+import { XWallet, XClient, XContract } from "simple-nil";
+import config from "../config";
 
 it("Marketplace e2e scenario", async () => {
   const marketArtifacts = await artifacts.readArtifact("Market");

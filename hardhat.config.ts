@@ -2,7 +2,7 @@ import type { NilHardhatUserConfig } from "@nilfoundation/hardhat-plugin";
 import "@nomicfoundation/hardhat-toolbox-viem";
 import "@nilfoundation/hardhat-plugin";
 
-import appConfig from "./src/client/utils/config";
+import appConfig from "./config";
 
 const config: NilHardhatUserConfig = {
   solidity: "0.8.23",
