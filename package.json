@@ -18,7 +18,8 @@
     "abitype": "^1.0.6",
     "dotenv": "^16.4.5",
     "eslint": "8.57.0",
-    "hardhat": "^2.22.8"
+    "hardhat": "^2.22.8",
+    "simple-nil": "^0.0.2"
   },
   "devDependencies": {
     "@nilfoundation/smart-contracts": "^0.1.0",
