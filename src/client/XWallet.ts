@@ -1,6 +1,4 @@
 import XW from "../../artifacts/contracts/XWallet.sol/XWallet.json";
-import { artifacts } from "hardhat";
-import { XWallet$Type } from "../../artifacts/contracts/XWallet.sol/XWallet";
 import {
   addHexPrefix,
   BlockTag,
@@ -27,15 +25,12 @@ export default class XWallet {
     readonly client: XClient,
     readonly signer: LocalECDSAKeySigner,
     readonly shardId: number,
-    private artifacts: XWallet$Type,
   ) {}
 
   static abi = XW.abi as Abi;
   static code = hexToBytes(addHexPrefix(XW.bytecode));
 
   static async init(options: XWalletOptions) {
-    const artifact = await artifacts.readArtifact("XWallet");
-
     const client = new XClient({
       shardId: options.shardId,
       rpc: options.rpc,
@@ -46,13 +41,7 @@ export default class XWallet {
       privateKey: options.signerPrivateKey,
     });
 
-    return new XWallet(
-      options.address,
-      client,
-      signer,
-      options.shardId,
-      artifact,
-    );
+    return new XWallet(options.address, client, signer, options.shardId);
   }
 
   static async deploy(options: { client: XClient; shardId: number }) {
@@ -94,7 +83,7 @@ export default class XWallet {
 
   async approve(spender: Hex, currencies: Currency[]) {
     const approveCalldata = encodeFunctionData({
-      abi: this.artifacts.abi,
+      abi: XWallet.abi,
       functionName: "approve",
       args: [spender, currencies],
     });
@@ -104,7 +93,7 @@ export default class XWallet {
 
   async createCurrency(amount: bigint) {
     const createCurrencyCalldata = encodeFunctionData({
-      abi: this.artifacts.abi,
+      abi: XWallet.abi,
       functionName: "mintCurrency",
       args: [amount],
     });
@@ -163,7 +152,7 @@ export default class XWallet {
       : "0x";
 
     const callData = encodeFunctionData({
-      abi: this.artifacts.abi,
+      abi: XWallet.abi,
       functionName: "asyncCall",
       args: [
         hexTo,
