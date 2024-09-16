@@ -1,8 +1,10 @@
 import { artifacts } from "hardhat";
-import { deployRandomXWallet } from "../src/scripts/deploy-xwallet";
 import { hexToBigInt } from "@nilfoundation/niljs";
 import { expect } from "chai";
 import { XContract } from "../src/client/XContract";
+import XWallet from "../src/client/XWallet";
+import { XClient } from "../src/client/XClient";
+import config from "../src/client/utils/config";
 
 it("Marketplace e2e scenario", async () => {
   const marketArtifacts = await artifacts.readArtifact("Market");
@@ -11,8 +13,9 @@ it("Marketplace e2e scenario", async () => {
   const NFT_ID = 5n;
   const PRICE = 100n;
 
-  const seller = await deployRandomXWallet();
-  const buyer = await deployRandomXWallet();
+  const client = new XClient(config);
+  const seller = await XWallet.deploy({ client, shardId: config.shardId });
+  const buyer = await XWallet.deploy({ client, shardId: config.shardId });
 
   const nftCollection = await XContract.deploy(
     seller,

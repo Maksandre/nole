@@ -77,7 +77,7 @@ export class XContract<T extends Abi> {
   async call<functionName extends ContractFunctionName<T>>(
     params: Omit<EncodeFunctionDataParameters<T, functionName>, "abi">,
   ) {
-    const { data } = await this.wallet.client.call(
+    const { data } = await this.wallet.client.client.call(
       {
         to: this.address,
         data: encodeFunctionData({

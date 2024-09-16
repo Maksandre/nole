@@ -1,38 +1,45 @@
+import XW from "../../artifacts/contracts/XWallet.sol/XWallet.json";
 import { artifacts } from "hardhat";
 import { XWallet$Type } from "../../artifacts/contracts/XWallet.sol/XWallet";
 import {
+  addHexPrefix,
   BlockTag,
   bytesToHex,
-  externalMessageEncode,
+  Faucet,
+  generateRandomPrivateKey,
+  getPublicKey,
   Hex,
   hexToBytes,
-  HttpTransport,
   LocalECDSAKeySigner,
   ProcessedReceipt,
-  PublicClient,
   refineAddress,
   SendMessageParams,
   waitTillCompleted,
 } from "@nilfoundation/niljs";
-import { encodeFunctionData, hexToBigInt } from "viem";
+import { Abi, encodeFunctionData, hexToBigInt } from "viem";
 import { XWalletOptions, Currency, DeployParams } from "./types";
 import { prepareDeployPart } from "./utils/deployPart";
-import { expectAllReceiptsSuccess } from "./utils/receipt";
+import { XClient } from "./XClient";
 
 export default class XWallet {
   private constructor(
     readonly address: Hex,
-    readonly client: PublicClient,
+    readonly client: XClient,
     readonly signer: LocalECDSAKeySigner,
     readonly shardId: number,
     private artifacts: XWallet$Type,
   ) {}
 
+  static abi = XW.abi as Abi;
+  static code = hexToBytes(addHexPrefix(XW.bytecode));
+
   static async init(options: XWalletOptions) {
     const artifact = await artifacts.readArtifact("XWallet");
-    const client = new PublicClient({
+
+    const client = new XClient({
       shardId: options.shardId,
-      transport: new HttpTransport({ endpoint: options.rpc }),
+      rpc: options.rpc,
+      signerPrivateKey: options.signerPrivateKey,
     });
 
     const signer = new LocalECDSAKeySigner({
@@ -46,6 +53,43 @@ export default class XWallet {
       options.shardId,
       artifact,
     );
+  }
+
+  static async deploy(options: { client: XClient; shardId: number }) {
+    const privateKey = generateRandomPrivateKey();
+    const pubkey = getPublicKey(privateKey);
+
+    const { data, address } = prepareDeployPart({
+      salt: BigInt(Date.now()),
+      bytecode: XWallet.code,
+      abi: XWallet.abi,
+      shard: options.shardId,
+      args: [pubkey],
+    });
+
+    const addressHex = bytesToHex(address);
+
+    const faucet = new Faucet(options.client.client);
+    await faucet.withdrawToWithRetry(bytesToHex(address), 10n ** 15n);
+
+    const messageHash = await options.client.callExternal(
+      bytesToHex(address),
+      bytesToHex(data),
+      true,
+    );
+
+    await waitTillCompleted(
+      options.client.client,
+      options.shardId,
+      messageHash,
+    );
+
+    return XWallet.init({
+      address: addressHex,
+      rpc: options.client.rpc,
+      shardId: options.shardId,
+      signerPrivateKey: privateKey,
+    });
   }
 
   async approve(spender: Hex, currencies: Currency[]) {
@@ -85,7 +129,7 @@ export default class XWallet {
     };
     const { data, address } = prepareDeployPart(deployData);
 
-    const { seqno, chainId } = await this.getCallParams();
+    const { seqno, chainId } = await this.client.getCallParams(this.address);
 
     const receipts = await this.sendMessage({
       to: address,
@@ -136,41 +180,16 @@ export default class XWallet {
     return this.callWaitResult(callData);
   }
 
-  async getCallParams() {
-    const [seqno, chainId] = await Promise.all([
-      this.client.getMessageCount(this.address, "latest"),
-      this.client.chainId(),
-    ]);
-
-    return { seqno, chainId };
+  private async callExternal(calldata: Hex, isDeploy = false) {
+    return this.client.callExternal(this.address, calldata, isDeploy);
   }
 
   private async callWaitResult(
     calldata: Hex,
     isDeploy = false,
   ): Promise<ProcessedReceipt[]> {
-    const { seqno, chainId } = await this.getCallParams();
+    const messageHash = await this.callExternal(calldata, isDeploy);
 
-    const { raw } = await externalMessageEncode(
-      {
-        isDeploy,
-        chainId,
-        seqno,
-        to: hexToBytes(this.address),
-        data: hexToBytes(calldata),
-      },
-      this.signer,
-    );
-
-    const messageHash = await this.client.sendRawMessage(raw);
-
-    const receipts = await waitTillCompleted(
-      this.client,
-      this.shardId,
-      messageHash,
-    );
-    expectAllReceiptsSuccess(receipts);
-
-    return receipts;
+    return waitTillCompleted(this.client.client, this.shardId, messageHash);
   }
 }
