@@ -4,7 +4,7 @@
   "main": "index.js",
   "repository": "https://github.com/Maksandre/nole.git",
   "author": "Maksandre <maxick20@gmail.com>",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "test": "npx hardhat test",
     "test:hh": "npx hardhat test --no-compile",
@@ -13,16 +13,16 @@
     "codestyle": "prettier . --write"
   },
   "dependencies": {
-    "@nilfoundation/hardhat-plugin": "0.13.0",
-    "@nilfoundation/niljs": "0.13.0",
+    "@nilfoundation/hardhat-plugin": "0.14.0",
+    "@nilfoundation/niljs": "0.14.0",
     "abitype": "^1.0.6",
     "dotenv": "^16.4.5",
     "eslint": "8.57.0",
     "hardhat": "^2.22.8",
-    "simple-nil": "^0.0.2"
+    "simple-nil": "0.1.2"
   },
   "devDependencies": {
-    "@nilfoundation/smart-contracts": "^0.1.0",
+    "@nilfoundation/smart-contracts": "^0.1.2",
     "@nomicfoundation/hardhat-ignition": "^0.15.0",
     "@nomicfoundation/hardhat-ignition-viem": "^0.15.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
