@@ -27,17 +27,13 @@ it("Marketplace e2e scenario", async () => {
     1,
   );
 
-  const result = await nftCollection
-    .sendMessage(
-      {
-        functionName: "mint",
-        args: [seller.address, NFT_ID],
-      },
-      { feeCredit: 10_000_000n },
-    )
-    .catch((e) => {
-      console.log(e);
-    });
+  const result = await nftCollection.sendMessage(
+    {
+      functionName: "mint",
+      args: [seller.address, NFT_ID],
+    },
+    { feeCredit: 10_000_000n },
+  );
 
   const nftId = await nftCollection
     .call({
