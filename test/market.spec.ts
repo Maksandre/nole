@@ -1,7 +1,7 @@
 import { artifacts } from "hardhat";
 import { hexToBigInt } from "@nilfoundation/niljs";
 import { expect } from "chai";
-import { XWallet, XContract } from "simple-nil";
+import { XWallet, XContract } from "@spacebit/simple-nil";
 import config from "../config";
 
 it("Marketplace e2e scenario", async () => {
