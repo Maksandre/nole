@@ -1,7 +1,7 @@
 import { artifacts } from "hardhat";
 import { hexToBigInt } from "@nilfoundation/niljs";
 import { expect } from "chai";
-import { XWallet, XClient, XContract } from "simple-nil";
+import { XWallet, XContract } from "@spacebit/simple-nil";
 import config from "../config";
 
 it("Marketplace e2e scenario", async () => {
@@ -11,9 +11,14 @@ it("Marketplace e2e scenario", async () => {
   const NFT_ID = 5n;
   const PRICE = 100n;
 
-  const client = new XClient(config);
-  const seller = await XWallet.deploy({ client, shardId: config.shardId });
-  const buyer = await XWallet.deploy({ client, shardId: config.shardId });
+  const seller = await XWallet.deploy({
+    ...config,
+    signerOrPrivateKey: config.signerPrivateKey,
+  });
+  const buyer = await XWallet.deploy({
+    ...config,
+    signerOrPrivateKey: config.signerPrivateKey,
+  });
 
   const nftCollection = await XContract.deploy(
     seller,
@@ -22,7 +27,7 @@ it("Marketplace e2e scenario", async () => {
     1,
   );
 
-  await nftCollection.sendMessage(
+  const result = await nftCollection.sendMessage(
     {
       functionName: "mint",
       args: [seller.address, NFT_ID],
