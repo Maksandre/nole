@@ -14,8 +14,8 @@
   },
   "devDependencies": {
     "@nilfoundation/hardhat-plugin": "^0.14.0",
-    "@nilfoundation/niljs": "^0.14.0",
-    "@nilfoundation/smart-contracts": "^0.1.2",
+    "@nilfoundation/niljs": "0.15.0",
+    "@nilfoundation/smart-contracts": "0.1.3",
     "@nomicfoundation/hardhat-ignition": "^0.15.0",
     "@nomicfoundation/hardhat-ignition-viem": "^0.15.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",

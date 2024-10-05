@@ -32,6 +32,16 @@ contract XWallet is IXWallet, Wallet {
             s_allowances[msg.sender][tkn.id] -= tkn.amount;
         }
 
-        Nil.asyncCall(_recepient, address(this), address(this), gasleft(), Nil.FORWARD_NONE, false, 0, _tokens, "");
+        Nil.asyncCallWithTokens(
+            _recepient,
+            address(this),
+            address(this),
+            gasleft(),
+            Nil.FORWARD_NONE,
+            false,
+            0,
+            _tokens,
+            ""
+        );
     }
 }
