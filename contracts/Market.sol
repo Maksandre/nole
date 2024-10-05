@@ -96,7 +96,17 @@ contract Market is NilBase {
 
         // TODO: this function potentially leads to loosing funds
         // if async transfer will fail and there are not enough funds to pay for gas in bounce
-        Nil.asyncCall(_to, address(this), address(this), 0, Nil.FORWARD_REMAINING, false, 0, tokens, "");
+
+        bytes memory context = abi.encodeWithSelector(this._proccessWithdrawResult.selector, _token);
+        bytes memory callData = "";
+        Nil.sendRequestWithTokens(_to, 0, tokens, Nil.ASYNC_REQUEST_MIN_GAS, context, callData);
+        // Nil.asyncCall(_to, address(this), address(this), 0, Nil.FORWARD_REMAINING, false, 0, tokens, "");
+    }
+
+    function _proccessWithdrawResult(bool _success, bytes memory _returnData, bytes memory _context) public {
+        if (_success) return;
+        Nil.Token memory token = abi.decode(_context, (Nil.Token));
+        s_virtualBalance[msg.sender][token.id] += token.amount;
     }
 
     function _transferFromAsync(address _from, address _to, Nil.Token memory _token) private {
